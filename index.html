@@ -3,166 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ไทบ้าน Community</title>
+    <title>ไทบ้าน POS - ระบบจัดการร้านค้า</title>
     <style>
-        /* โทนสีแอปชุมชน (สว่าง คลีน น่าใช้งาน) */
+        /* โทนสีและฟอนต์ให้ดูน่าเชื่อถือแบบแอปธุรกิจ */
         :root {
-            --bg: #F7FAFC;
+            --primary: #800000; /* สีแดงเข้มตาม Wireframe มึง */
+            --primary-light: #A52A2A;
+            --bg-color: #F0F2F5;
             --surface: #FFFFFF;
-            --primary: #FF6B00; /* ส้มแบรนด์ดิ้ง */
-            --text-main: #2D3748;
-            --text-light: #718096;
-            --border: #E2E8F0;
-            --success: #38A169;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E4E4E4;
+            --busy-color: #FF7F00; /* สีส้ม โต๊ะไม่ว่าง */
+            --empty-color: #FFFFFF; /* สีขาว โต๊ะว่าง */
+            --success: #28A745;
+            --danger: #DC3545;
         }
 
-        * { box-sizing: border-box; font-family: sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text-main); padding-bottom: 70px; }
-
-        /* Header (พิกัด & โปรไฟล์) */
-        .header { background: var(--surface); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .location { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--primary); font-size: 16px; }
-        .profile-btn { background: #EDF2F7; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; color: var(--text-main); cursor: pointer; }
-
-        /* พื้นที่เนื้อหา */
-        .content { padding: 15px; }
-
-        /* ช่องค้นหา */
-        .search-bar { background: var(--surface); padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .search-bar input { border: none; outline: none; width: 100%; font-size: 14px; color: var(--text-main); }
-
-        /* Section Title */
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .badge-live { background: #FFF5F5; color: #E53E3E; font-size: 12px; padding: 4px 8px; border-radius: 12px; border: 1px solid #FEB2B2; display: flex; align-items: center; gap: 4px; }
-        .dot { height: 8px; width: 8px; background-color: #E53E3E; border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
-
-        /* การ์ดร้านค้า */
-        .shop-card { background: var(--surface); border-radius: 16px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--border); display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s; }
-        .shop-card:active { transform: scale(0.98); }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         
-        .shop-img { height: 120px; background-color: #CBD5E0; background-image: linear-gradient(45deg, #E2E8F0 25%, transparent 25%, transparent 75%, #E2E8F0 75%, #E2E8F0), linear-gradient(45deg, #E2E8F0 25%, transparent 25%, transparent 75%, #E2E8F0 75%, #E2E8F0); background-size: 20px 20px; background-position: 0 0, 10px 10px; position: relative; }
-        .shop-distance { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; backdrop-filter: blur(4px); }
-        
-        .shop-info { padding: 15px; }
-        .shop-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-        .shop-status { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        
-        .status-tag { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-        .status-tag.available { background: #F0FFF4; color: var(--success); }
-        .status-tag.busy { background: #FFF5F5; color: #E53E3E; }
+        body { 
+            background-color: #333; /* พื้นหลังสีเข้มเวลาเปิดบนคอม */
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh;
+        }
 
-        /* เมนูด้านล่าง (Bottom Nav) */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--surface); display: flex; border-top: 1px solid var(--border); box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item { flex: 1; padding: 12px 0; text-align: center; font-size: 12px; color: var(--text-light); cursor: pointer; font-weight: bold; }
-        .nav-item.active { color: var(--primary); }
-        .nav-icon { display: block; font-size: 22px; margin-bottom: 4px; }
+        /* กรอบแอป (จำลองหน้าจอมือถือ/แท็บเล็ต) */
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* ไม่ให้มันยืดเต็มจอคอม */
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Modal Login (ซ่อนไว้ก่อน) */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
-        .modal-content { background: var(--surface); padding: 25px; border-radius: 16px; width: 85%; max-width: 400px; text-align: center; }
-        .btn-login { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        .btn-line { background: #00C300; color: white; }
-        .btn-google { background: white; color: #757575; border: 1px solid #ccc; }
+        /* Header */
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 18px; margin: 0; }
+        .badge { background: #FFD700; color: #000; font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+
+        /* Top Navigation Tabs (ตามรูปมึงเป๊ะ) */
+        .tabs {
+            display: flex;
+            background-color: var(--primary);
+            padding: 0 5px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            background-color: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin: 0 2px;
+            transition: 0.2s;
+        }
+        .tab.active {
+            background-color: var(--bg-color);
+            color: var(--primary);
+        }
+
+        /* พื้นที่แสดงผล */
+        .content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .page { display: none; animation: fadeIn 0.2s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* การ์ดทั่วไป */
+        .card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: var(--text-dark); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        /* Grid โต๊ะลูกค้า */
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 10px 0;
+        }
+        .table-box {
+            aspect-ratio: 1;
+            border: 3px solid var(--text-dark);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+        .table-box:active { transform: scale(0.95); }
+        .table-box.empty { background-color: var(--empty-color); color: var(--text-muted); border-color: var(--border); }
+        .table-box.busy { background-color: var(--busy-color); color: white; border-color: var(--busy-color); }
+
+        /* ฟอร์มและปุ่ม */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"], input[type="number"] { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        button { padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        button:active { opacity: 0.8; }
+        .btn-primary { background-color: var(--primary); width: 100%; }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); width: 100%; margin-top: 10px; }
+
+        /* ลิสต์รายการ (โต๊ะ/เมนู) */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .list-item:last-child { border-bottom: none; }
+        .list-name { font-weight: bold; color: var(--text-dark); }
+        .list-price { color: var(--text-muted); font-size: 13px; }
+
+        /* สวิตช์ออนไลน์ */
+        .online-status-box { text-align: center; padding: 20px 0; }
+        .status-dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="location">
-            📍 <span id="userLocation">พื้นที่ใกล้เคียง</span>
-        </div>
-        <button class="profile-btn" onclick="openLogin()">เข้าสู่ระบบ</button>
-    </div>
-
-    <div class="content">
-        <div class="search-bar">
-            🔍 <input type="text" placeholder="ค้นหาร้านอาหาร, ร้านตัดผม, คิวรถ...">
+    <div class="app-container">
+        <div class="header">
+            <h1>แอพสำหรับร้าน</h1>
+            <span class="badge" id="appStatusBadge">TRIAL</span>
         </div>
 
-        <div class="section-title">
-            ร้านที่กำลังเปิดอยู่
-            <div class="badge-live"><span class="dot"></span> LIVE</div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('customer', this)">ลูกค้า</div>
+            <div class="tab" onclick="switchTab('shop', this)">ร้าน</div>
+            <div class="tab" onclick="switchTab('manage', this)">จัดการร้าน</div>
+            <div class="tab" onclick="switchTab('system', this)">ระบบ</div>
         </div>
 
-        <div id="shopContainer">
-            
-            <div class="shop-card">
-                <div class="shop-img">
-                    <div class="shop-distance">📍 1.2 กม.</div>
-                </div>
-                <div class="shop-info">
-                    <div class="shop-name">ร้านผัดไทยยายสม (ตัวอย่าง)</div>
-                    <div style="font-size: 13px; color: var(--text-light);">ผัดไทย, อาหารตามสั่ง</div>
-                    <div class="shop-status">
-                        <span class="status-tag available">✅ ว่าง 3 โต๊ะ</span>
-                        <span style="font-size: 12px; color: var(--primary); font-weight: bold;">ดูเมนู ></span>
-                    </div>
+        <div class="content">
+
+            <div id="page-customer" class="page active">
+                <div class="card">
+                    <div class="card-title">สถานะโต๊ะ / คิว</div>
+                    <div class="table-grid" id="tableGrid">
+                        </div>
+                    <p style="text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+                        คลิกที่กล่องเพื่อสลับสถานะ: <br> ⬜ ว่าง | 🟧 ไม่ว่าง (มีลูกค้า)
+                    </p>
                 </div>
             </div>
 
-            <div class="shop-card">
-                <div class="shop-img">
-                    <div class="shop-distance">📍 2.5 กม.</div>
-                </div>
-                <div class="shop-info">
-                    <div class="shop-name">ร้านสระไดร์ พี่หนู (ตัวอย่าง)</div>
-                    <div style="font-size: 13px; color: var(--text-light);">เสริมสวย, สระผม</div>
-                    <div class="shop-status">
-                        <span class="status-tag busy">⏳ คิวเต็ม (รอประมาณ 30 นาที)</span>
-                        <span style="font-size: 12px; color: var(--primary); font-weight: bold;">ดูรายละเอียด ></span>
+            <div id="page-shop" class="page">
+                <div class="card">
+                    <div class="card-title">การเชื่อมต่อกับชุมชน</div>
+                    <p style="font-size: 13px; color: var(--text-muted);">เปิดระบบออนไลน์เพื่อให้คนในชุมชนรู้ว่าร้านนี้กำลังว่างไหม</p>
+                    
+                    <div class="online-status-box">
+                        <div id="onlineText" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+                            <span class="status-dot" style="background: red;"></span> ออฟไลน์
+                        </div>
+                        <button class="btn-primary" id="btnToggleOnline" onclick="toggleOnline()">เปิดออนไลน์ (Online)</button>
                     </div>
+                </div>
+
+                <div class="card" style="background-color: #f8f9fa;">
+                    <div class="card-title">หน้าต่างบอร์ดชุมชน</div>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">เข้าสู่หน้าบอร์ดรวมเพื่อดูร้านค้าอื่นๆ ในพื้นที่ของคุณ</p>
+                    <button class="btn-outline" onclick="window.location.href='board.html'">ไปที่หน้าบอร์ดชุมชน 🚀</button>
                 </div>
             </div>
 
-        </div>
-    </div>
+            <div id="page-manage" class="page">
+                <div class="card">
+                    <div class="card-title">สร้างโต๊ะ / คิว</div>
+                    <div class="input-group">
+                        <input type="text" id="inputTableName" placeholder="ชื่อโต๊ะ (เช่น T1, โต๊ะ 1)">
+                        <button class="btn-success" onclick="addTable()" style="width: 80px;">เพิ่ม</button>
+                    </div>
+                    <div id="tableList"></div>
+                </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active">
-            <span class="nav-icon">🧭</span>สำรวจ
-        </div>
-        <div class="nav-item">
-            <span class="nav-icon">🧾</span>ออเดอร์
-        </div>
-        <div class="nav-item" onclick="openLogin()">
-            <span class="nav-icon">👤</span>ฉัน
-        </div>
-    </div>
+                <div class="card">
+                    <div class="card-title">เมนูสินค้า (ไม่บังคับ)</div>
+                    <div class="input-group">
+                        <input type="text" id="inputMenuName" placeholder="ชื่อเมนู">
+                        <input type="number" id="inputMenuPrice" placeholder="ราคา" style="width: 80px;">
+                    </div>
+                    <button class="btn-success" onclick="addMenu()" style="width: 100%; margin-bottom: 15px;">+ เพิ่มเมนู</button>
+                    <div id="menuList"></div>
+                </div>
+            </div>
 
-    <div class="modal" id="loginModal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 10px;">เข้าสู่ระบบ</h3>
-            <p style="font-size: 13px; color: var(--text-light); margin-bottom: 20px;">เพื่อสั่งอาหารและจองคิวร้านค้าในชุมชน</p>
-            
-            <button class="btn-login btn-line">ล็อกอินด้วย LINE</button>
-            <button class="btn-login btn-google">ล็อกอินด้วย Google</button>
-            
-            <button onclick="closeLogin()" style="margin-top: 20px; background: none; border: none; color: var(--text-light); cursor: pointer;">ปิด</button>
+            <div id="page-system" class="page">
+                <div class="card">
+                    <div class="card-title">🔐 ข้อมูลเครื่อง & ปลดล็อค</div>
+                    <div style="background: var(--bg-color); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                        <span style="font-size: 12px; color: var(--text-muted);">รหัสประจำเครื่อง (Device ID):</span><br>
+                        <span id="deviceId" style="font-weight: bold; color: var(--primary); font-size: 16px;">กำลังโหลด...</span>
+                    </div>
+
+                    <p style="font-size: 12px; color: var(--danger); margin-bottom: 10px;" id="lockWarning">
+                        *โหมดทดลองใช้ จำกัดการสร้างโต๊ะและเมนูอย่างละ 4 รายการ
+                    </p>
+
+                    <div class="input-group">
+                        <input type="text" id="inputShopKey" placeholder="ใส่รหัส Shop Key เพื่อปลดล็อค">
+                    </div>
+                    <button class="btn-primary" onclick="activatePro()">ยืนยันรหัสปลดล็อค</button>
+                </div>
+
+                <button class="btn-danger" style="width: 100%; padding: 15px; margin-top: 20px;" onclick="resetApp()">⚠️ ล้างข้อมูลแอปทั้งหมด</button>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // ระบบจำลองเปิด/ปิดหน้าต่าง Login
-        const modal = document.getElementById('loginModal');
-        function openLogin() { modal.style.display = 'flex'; }
-        function closeLogin() { modal.style.display = 'none'; }
+        // 1. สร้าง Fingerprint ของเครื่อง
+        function generateDeviceID() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.fillText("PosThaibanCore", 2, 10);
+                const b64 = canvas.toDataURL();
+                let hash = 0;
+                for (let i = 0; i < b64.length; i++) hash = ((hash << 5) - hash) + b64.charCodeAt(i);
+                return "TB-" + Math.abs(hash).toString(16).toUpperCase();
+            } catch (e) { return "TB-UNKNOWN"; }
+        }
+        document.getElementById('deviceId').innerText = generateDeviceID();
 
-        // ปิด modal เวลากดพื้นที่ว่าง
-        window.onclick = function(event) {
-            if (event.target == modal) { closeLogin(); }
+        // 2. ฐานข้อมูล Offline (LocalStorage)
+        let posDB = JSON.parse(localStorage.getItem('thaiban_pos_data')) || {
+            isPro: false,
+            isOnline: false,
+            tables: [
+                { id: "1", status: "empty" },
+                { id: "2", status: "empty" },
+                { id: "3", status: "busy" } // จำลองข้อมูลตั้งต้น
+            ],
+            menus: []
+        };
+
+        function saveData() {
+            localStorage.setItem('thaiban_pos_data', JSON.stringify(posDB));
+            renderUI();
         }
 
-        // ขอสิทธิ์ Location (จำลองให้ดูสมจริง)
-        setTimeout(() => {
-            if(navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(() => {
-                    document.getElementById('userLocation').innerText = "พิกัดของคุณ (พร้อมใช้งาน)";
-                }, () => {
-                    // ถ้าไม่ยอมให้พิกัด
-                });
+        // 3. ฟังก์ชันสลับแท็บ
+        function switchTab(pageId, btnElement) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // 4. วาดหน้าจอ (Render UI)
+        function renderUI() {
+            // อัปเดตสถานะ PRO
+            const badge = document.getElementById('appStatusBadge');
+            const warning = document.getElementById('lockWarning');
+            if(posDB.isPro) {
+                badge.innerText = "PRO";
+                badge.style.background = "var(--success)";
+                warning.style.display = "none";
+            } else {
+                badge.innerText = "TRIAL";
+                badge.style.background = "#FFD700";
+                warning.style.display = "block";
             }
-        }, 1000);
+
+            // อัปเดตสถานะ Online
+            const onlineText = document.getElementById('onlineText');
+            const btnToggle = document.getElementById('btnToggleOnline');
+            if(posDB.isOnline) {
+                onlineText.innerHTML = `<span class="status-dot" style="background: var(--success);"></span> ออนไลน์ (โชว์บนบอร์ด)`;
+                btnToggle.innerText = "ปิดออฟไลน์";
+                btnToggle.style.backgroundColor = "var(--danger)";
+            } else {
+                onlineText.innerHTML = `<span class="status-dot" style="background: var(--danger);"></span> ออฟไลน์`;
+                btnToggle.innerText = "เปิดออนไลน์ (Online)";
+                btnToggle.style.backgroundColor = "var(--primary)";
+            }
+
+            // เรนเดอร์กล่องโต๊ะ (แท็บลูกค้า)
+            const grid = document.getElementById('tableGrid');
+            grid.innerHTML = "";
+            posDB.tables.forEach((t, index) => {
+                grid.innerHTML += `<div class="table-box ${t.status}" onclick="toggleTableStatus(${index})">${t.id}</div>`;
+            });
+
+            // เรนเดอร์รายการโต๊ะ (แท็บจัดการ)
+            const tList = document.getElementById('tableList');
+            tList.innerHTML = "";
+            posDB.tables.forEach((t, index) => {
+                tList.innerHTML += `
+                    <div class="list-item">
+                        <span class="list-name">โต๊ะ/คิว: ${t.id}</span>
+                        <button class="btn-danger" style="padding: 6px 12px; width: auto;" onclick="deleteTable(${index})">ลบ</button>
+                    </div>`;
+            });
+
+            // เรนเดอร์รายการเมนู (แท็บจัดการ)
+            const mList = document.getElementById('menuList');
+            mList.innerHTML = "";
+            posDB.menus.forEach((m, index) => {
+                mList.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <div class="list-name">${m.name}</div>
+                            <div class="list-price">฿${m.price}</div>
+                        </div>
+                        <button class="btn-danger" style="padding: 6px 12px; width: auto;" onclick="deleteMenu(${index})">ลบ</button>
+                    </div>`;
+            });
+        }
+
+        // 5. Logic การทำงาน
+        function toggleTableStatus(index) {
+            posDB.tables[index].status = posDB.tables[index].status === 'empty' ? 'busy' : 'empty';
+            saveData();
+        }
+
+        function toggleOnline() {
+            if(!posDB.isPro) return alert("ฟีเจอร์นี้สงวนไว้สำหรับร้านค้าที่ซื้อตัวเต็ม (PRO) เท่านั้นครับ");
+            posDB.isOnline = !posDB.isOnline;
+            saveData();
+        }
+
+        function addTable() {
+            const name = document.getElementById('inputTableName').value;
+            if(!name) return;
+            if(!posDB.isPro && posDB.tables.length >= 4) return alert("โหมดทดลองใช้ สร้างโต๊ะได้สูงสุด 4 โต๊ะ\nโปรดใส่ Shop Key เพื่อปลดล็อค");
+            
+            posDB.tables.push({ id: name, status: "empty" });
+            document.getElementById('inputTableName').value = "";
+            saveData();
+        }
+
+        function deleteTable(index) {
+            posDB.tables.splice(index, 1);
+            saveData();
+        }
+
+        function addMenu() {
+            const name = document.getElementById('inputMenuName').value;
+            const price = document.getElementById('inputMenuPrice').value;
+            if(!name || !price) return alert("กรุณาใส่ชื่อเมนูและราคา");
+            if(!posDB.isPro && posDB.menus.length >= 4) return alert("โหมดทดลองใช้ สร้างเมนูได้สูงสุด 4 รายการ\nโปรดใส่ Shop Key เพื่อปลดล็อค");
+
+            posDB.menus.push({ name: name, price: price });
+            document.getElementById('inputMenuName').value = "";
+            document.getElementById('inputMenuPrice').value = "";
+            saveData();
+        }
+
+        function deleteMenu(index) {
+            posDB.menus.splice(index, 1);
+            saveData();
+        }
+
+        function activatePro() {
+            const key = document.getElementById('inputShopKey').value;
+            if(key === "8888") { // รหัสทดสอบ
+                posDB.isPro = true;
+                document.getElementById('inputShopKey').value = "";
+                saveData();
+                alert("🎉 ปลดล็อคสำเร็จ! คุณสามารถใช้งานได้ไม่จำกัดแล้ว");
+            } else {
+                alert("❌ รหัส Shop Key ไม่ถูกต้อง");
+            }
+        }
+
+        function resetApp() {
+            if(confirm("คำเตือน: ล้างข้อมูลโต๊ะและเมนูทั้งหมดใช่หรือไม่?")) {
+                localStorage.removeItem('thaiban_pos_data');
+                location.reload();
+            }
+        }
+
+        // เรียกทำงานตอนเปิดเว็บ
+        renderUI();
+
+        // โค้ดปลุก Service Worker (Offline 100%)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Error: ', err));
+            });
+        }
     </script>
 </body>
 </html>
