@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control - PosThaiban</title>
+    <style>
+        /* โทนสี Admin (Dark Mode ดุดันและเป็นความลับ) */
+        :root {
+            --bg-dark: #0F172A;
+            --surface: #1E293B;
+            --primary: #3B82F6; /* ฟ้าสว่าง */
+            --accent: #10B981; /* เขียว Success */
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #334155;
+            --danger: #EF4444;
+        }
+
+        * { box-sizing: border-box; font-family: sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* ระบบ Login Screen (กันคนนอก) */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; }
+        .login-box { background: var(--surface); padding: 30px; border-radius: 12px; border: 1px solid var(--border); width: 90%; max-width: 350px; text-align: center; }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 6px; outline: none; }
+        .login-box button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        /* Sidebar เมนูด้านข้าง */
+        .sidebar { width: 250px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; font-size: 20px; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); }
+        .nav-item { padding: 15px 20px; color: var(--text-muted); cursor: pointer; border-left: 3px solid transparent; transition: 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--primary); border-left-color: var(--primary); font-weight: bold; }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .page { display: none; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* กล่องสถิติ (Dashboard) */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        .stat-title { color: var(--text-muted); font-size: 14px; margin-bottom: 10px; }
+        .stat-value { font-size: 28px; font-weight: bold; color: var(--text-main); }
+
+        /* การ์ดทั่วไป */
+        .card { background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .card-header { font-size: 16px; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        
+        /* ฟอร์มและปุ่ม */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input[type="text"] { flex: 1; padding: 10px; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 6px; }
+        button.btn-success { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        /* ตารางข้อมูล */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { color: var(--text-muted); font-weight: normal; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-pro { background: rgba(16, 185, 129, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .badge-trial { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+        <h2 style="color: var(--primary); margin-bottom: 10px;">🛡️ System Admin</h2>
+        <div class="login-box">
+            <p style="color: var(--text-muted); font-size: 14px;">กรุณาใส่รหัสผ่านผู้ดูแลระบบ</p>
+            <input type="password" id="adminPass" placeholder="Admin Password">
+            <button onclick="checkAdmin()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            POS Admin
+        </div>
+        <div class="nav-item active" onclick="switchTab('dashboard', this)">📊 ภาพรวมระบบ</div>
+        <div class="nav-item" onclick="switchTab('keys', this)">🔑 จัดการ Shop Key</div>
+        <div class="nav-item" onclick="switchTab('settings', this)">⚙️ ตั้งค่าบอร์ดชุมชน</div>
+        
+        <div style="margin-top: auto; padding: 20px;">
+            <button style="width: 100%; padding: 10px; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 6px; cursor: pointer;" onclick="location.reload()">ออกจากระบบ</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="page-dashboard" class="page active">
+            <h2 style="margin-bottom: 20px;">ภาพรวมระบบ (Dashboard)</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">ร้านค้าในระบบทั้งหมด</div>
+                    <div class="stat-value">12 ร้าน</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">สถานะ PRO (จ่ายเงินแล้ว)</div>
+                    <div class="stat-value" style="color: var(--accent);">5 ร้าน</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">กำลัง Online บนบอร์ด</div>
+                    <div class="stat-value" style="color: var(--primary);">3 ร้าน</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">รายชื่อร้านค้าล่าสุด</div>
+                <table>
+                    <tr><th>ชื่อร้าน/อุปกรณ์</th><th>Fingerprint</th><th>สถานะ</th></tr>
+                    <tr><td>มือถือแม่ (Vivo)</td><td>TB-A1B2C3D4</td><td><span class="badge badge-pro">PRO</span></td></tr>
+                    <tr><td>ร้านผัดไทยเจ๊สม</td><td>TB-9F8E7D6C</td><td><span class="badge badge-trial">TRIAL</span></td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="page-keys" class="page">
+            <h2 style="margin-bottom: 20px;">สร้างรหัสปลดล็อค (Shop Key Generator)</h2>
+            
+            <div class="card">
+                <div class="card-header">ออก Key ใหม่ให้ลูกค้า</div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">เมื่อลูกค้าโอนเงิน ให้เอารหัส Fingerprint จากเครื่องลูกค้ามาใส่ที่นี่ เพื่อสร้าง Key ปลดล็อค</p>
+                <div class="input-group">
+                    <input type="text" id="clientFingerprint" placeholder="ใส่รหัส Fingerprint ของลูกค้า (เช่น TB-123456)">
+                    <button class="btn-success" onclick="generateKey()">สร้าง Key</button>
+                </div>
+                <div id="keyResult" style="display: none; background: rgba(16, 185, 129, 0.1); padding: 15px; border-left: 4px solid var(--accent); border-radius: 4px; margin-top: 15px;">
+                    <div style="font-size: 12px; color: var(--text-muted);">Shop Key สำหรับเครื่องนี้คือ:</div>
+                    <div id="newKey" style="font-size: 24px; font-weight: bold; color: var(--accent); margin: 5px 0; letter-spacing: 2px;">PRO-XXXX-XXXX</div>
+                    <div style="font-size: 12px;">ก๊อปปี้รหัสนี้ส่งให้ลูกค้าไปกรอกในแอปได้เลย</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-settings" class="page">
+            <h2 style="margin-bottom: 20px;">ตั้งค่าบอร์ดชุมชน</h2>
+            
+            <div class="card">
+                <div class="card-header">รัศมีการมองเห็นร้านค้า (Geolocation Radius)</div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">กำหนดว่า User จะมองเห็นร้านค้าที่เปิด Online ในรัศมีกี่กิโลเมตร</p>
+                <div class="input-group">
+                    <input type="text" value="15" style="width: 100px; flex: none;">
+                    <span style="padding: 10px; color: var(--text-muted);">กิโลเมตร</span>
+                </div>
+                <button class="btn-success" onclick="alert('บันทึกการตั้งค่าสำเร็จ (จำลอง)')">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. ระบบ Login แบบง่าย (รหัสจำลองคือ "admin123")
+        function checkAdmin() {
+            const pass = document.getElementById('adminPass').value;
+            if(pass === "admin123") {
+                document.getElementById('loginScreen').style.display = "none";
+            } else {
+                alert("รหัสผ่านไม่ถูกต้อง!");
+            }
+        }
+
+        // 2. ระบบเปลี่ยนหน้าต่าง (Tabs)
+        function switchTab(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // 3. ระบบสร้าง Key (Generator Algorithm แบบจำลอง)
+        function generateKey() {
+            const fp = document.getElementById('clientFingerprint').value;
+            if(!fp) return alert("กรุณาใส่ Fingerprint ของลูกค้าก่อน");
+            
+            // จำลองการสร้าง Key โดยเอา Fingerprint มาสลับตัวอักษรหรือเพิ่มโค้ดลับ
+            // ในของจริงเราจะเอา Key นี้ไปเซฟใน Firebase
+            const prefix = "PRO";
+            const randomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const fakeKey = `${prefix}-${fp.substring(3, 7)}-${randomCode}`;
+            
+            document.getElementById('newKey').innerText = fakeKey;
+            document.getElementById('keyResult').style.display = "block";
+        }
+    </script>
+</body>
+</html>
