@@ -4,8 +4,7 @@ const CACHE_NAME = 'pos-thaiban-v1';
 const urlsToCache = [
   './',
   './index.html',
-  './shop.html',
-  './manifest.json',
+    './manifest.json',
   './icon.png'
 ];
 
